@@ -1,4 +1,4 @@
-﻿---
+---
 name: git-commit-convention
 description: 统一 Git 提交规范，生成可审计、可追踪的提交信息。用于需要创建 commit、整理提交内容、规范化 commit message、以及审查提交质量的场景。
 ---
