@@ -1,0 +1,31 @@
+name: Backend Health Check
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  codex-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Codex Review
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.ACTION_KEY }}
+          prompt: |
+            Review the backend repository.
+
+            Use the available skills:
+
+            - nest-architecture-guard
+            - prisma-schema-guard
+            - rbac-permission-check
+            - backend-risk-analyzer
+
+            Generate a report of issues.

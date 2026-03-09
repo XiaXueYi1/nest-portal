@@ -1,0 +1,51 @@
+name: PRD Development Pipeline
+
+on:
+  push:
+    paths:
+      - "docs/prd/**"
+  workflow_dispatch:
+
+jobs:
+  codex-dev:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run Codex Agent
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.ACTION_KEY }}
+          prompt: |
+            A PRD document in docs/prd has changed.
+
+            Perform the following workflow:
+
+            1. Analyze PRD changes
+            2. Generate NestJS backend code
+            3. Follow project architecture
+            4. Generate DTOs, services, controllers
+            5. Update Prisma schema if required
+            6. Generate tests
+            7. Run lint and tests
+            8. Fix issues automatically
+            9. Create a new branch
+            10. Commit and open a pull request
+
+            Important constraints:
+
+            Only modify:
+            - src/modules/*
+            - prisma/schema/modules/*
+            - test/*
+
+            Do NOT modify:
+            - src/common/*
+            - src/setup/*
+            - src/config/*
