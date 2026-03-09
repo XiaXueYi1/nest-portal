@@ -1,0 +1,26 @@
+import Joi from 'joi'
+
+export const validationSchema = Joi.object({
+  NODE_ENV: Joi.string().valid('development', 'production', 'test', 'provision').default('development'),
+  PORT: Joi.number().default(3000),
+  LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'debug').default('info'),
+  LOG_DIR: Joi.string().default('logs'),
+  DATABASE_URL: Joi.string().required(),
+  REDIS_HOST: Joi.string().default('127.0.0.1'),
+  REDIS_PORT: Joi.number().integer().min(1).max(65535).default(6379),
+  REDIS_PASSWORD: Joi.string().allow('').optional(),
+  REDIS_DB: Joi.number().integer().min(0).default(0),
+  AI_MODEL: Joi.string().default('deepseek'),
+  DEEPSEEK_API_URL: Joi.string().uri().required(),
+  DEEPSEEK_API_KEY: Joi.string().required(),
+  AUTH_TOKEN_ISSUER: Joi.string().default('nest-portal'),
+  AUTH_TOKEN_AUDIENCE: Joi.string().default('nest-portal-web'),
+  AUTH_ACCESS_TOKEN_SECRET: Joi.string().min(32).required(),
+  AUTH_REFRESH_TOKEN_SECRET: Joi.string().min(32).required(),
+  AUTH_ACCESS_TOKEN_TTL_SECONDS: Joi.number().integer().min(300).default(1800),
+  AUTH_REFRESH_TOKEN_TTL_SECONDS: Joi.number().integer().min(3600).default(604800),
+  AUTH_ACCESS_COOKIE_NAME: Joi.string().default('portal_access_token'),
+  AUTH_REFRESH_COOKIE_NAME: Joi.string().default('portal_refresh_token'),
+  AUTH_COOKIE_DOMAIN: Joi.string().allow('').optional(),
+  AUTH_ACCESS_ROTATE_THRESHOLD_SECONDS: Joi.number().integer().min(60).default(300),
+})

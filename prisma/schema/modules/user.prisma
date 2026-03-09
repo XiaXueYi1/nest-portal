@@ -1,0 +1,26 @@
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  LOCKED
+}
+
+model User {
+  id          String     @id @default(cuid())
+  username    String     @unique @db.VarChar(64)
+  password    String     @db.VarChar(255)
+  displayName String?    @db.VarChar(128)
+  email       String?    @unique @db.VarChar(128)
+  avatar      String?    @db.VarChar(512)
+  status      UserStatus @default(ACTIVE)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  userRoles    UserRole[]
+  authSessions AuthSession[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+  @@index([status])
+}

@@ -1,0 +1,26 @@
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  ASSIGN_ROLE
+  REVOKE_ROLE
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  actorUserId String?
+  action      AuditAction
+  targetType  String?     @db.VarChar(64)
+  targetId    String?     @db.VarChar(64)
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("audit_logs")
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+}

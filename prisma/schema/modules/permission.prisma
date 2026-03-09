@@ -1,0 +1,23 @@
+enum PermissionType {
+  API
+  MENU
+  ACTION
+}
+
+model Permission {
+  id          String         @id @default(cuid())
+  code        String         @unique @db.VarChar(128)
+  name        String         @db.VarChar(128)
+  type        PermissionType
+  resource    String         @db.VarChar(128)
+  action      String         @db.VarChar(64)
+  description String?        @db.VarChar(255)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+  @@index([type])
+  @@index([resource, action])
+}
