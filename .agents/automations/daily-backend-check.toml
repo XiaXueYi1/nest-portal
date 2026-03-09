@@ -1,0 +1,15 @@
+
+name = "Daily Backend Health Check"
+
+prompt = """
+Run skills:
+
+nest-architecture-guard
+prisma-schema-guard
+rbac-permission-check
+backend-risk-analyzer
+"""
+
+rrule = "FREQ=DAILY;BYHOUR=9"
+
+status = "ACTIVE"

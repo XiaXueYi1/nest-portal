@@ -1,0 +1,21 @@
+
+name = "PRD Development Pipeline"
+
+prompt = """
+Detect PRD changes.
+
+Run:
+
+prd-analyzer
+feature-implementer
+test-generator
+code-reviewer
+
+If review fails:
+auto-fixer
+
+When review passes:
+commit and push
+"""
+
+status = "ACTIVE"
