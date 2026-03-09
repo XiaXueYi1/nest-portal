@@ -44,8 +44,17 @@ jobs:
             - src/modules/*
             - prisma/schema/modules/*
             - test/*
+            - src/common/pagination/*
+            - src/common/utils/*
+            - src/common/types/*
 
             Do NOT modify:
-            - src/common/*
+            - src/common/guards/*
+            - src/common/filters/*
+            - src/common/interceptors/*
+            - src/common/logger/*
+            - src/common/prisma/*
+            - src/common/redis/*
             - src/setup/*
             - src/config/*
+            - Any other path under src/common/* not listed in "Only modify"
