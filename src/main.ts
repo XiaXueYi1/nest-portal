@@ -8,8 +8,6 @@ import { setupApp } from '@/setup/app-bootstrap'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   setupApp(app)
-  console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
-  console.log('process.env.PORT:', process.env.PORT)
   await app.listen(process.env.PORT ?? 3000)
 }
 void bootstrap()

@@ -3,8 +3,8 @@ import { registerAs } from '@nestjs/config'
 export default registerAs('auth', () => ({
   issuer: process.env.AUTH_TOKEN_ISSUER || 'nest-portal',
   audience: process.env.AUTH_TOKEN_AUDIENCE || 'nest-portal-web',
-  accessTokenSecret: process.env.AUTH_ACCESS_TOKEN_SECRET || process.env.AUTH_TOKEN_SECRET || 'replace-with-a-long-random-secret',
-  refreshTokenSecret: process.env.AUTH_REFRESH_TOKEN_SECRET || process.env.AUTH_TOKEN_SECRET || 'replace-with-a-long-random-secret',
+  accessTokenSecret: process.env.AUTH_ACCESS_TOKEN_SECRET || process.env.AUTH_TOKEN_SECRET || '',
+  refreshTokenSecret: process.env.AUTH_REFRESH_TOKEN_SECRET || process.env.AUTH_TOKEN_SECRET || '',
   accessTokenTtlSeconds: parseInt(process.env.AUTH_ACCESS_TOKEN_TTL_SECONDS || '1800', 10),
   refreshTokenTtlSeconds: parseInt(process.env.AUTH_REFRESH_TOKEN_TTL_SECONDS || '604800', 10),
   accessCookieName: process.env.AUTH_ACCESS_COOKIE_NAME || 'portal_access_token',

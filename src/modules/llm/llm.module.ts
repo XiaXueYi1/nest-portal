@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common'
 import { LlmController } from '@/modules/llm/llm.controller'
 import { LlmService } from '@/modules/llm/llm.service'
-import { AuthModule } from '@/modules/auth/auth.module'
+import { DeepSeekProvider } from '@/modules/llm/providers/deepseek.provider'
 
 @Module({
-  imports: [AuthModule],
   controllers: [LlmController],
-  providers: [LlmService],
+  providers: [LlmService, DeepSeekProvider],
 })
 export class LlmModule {}

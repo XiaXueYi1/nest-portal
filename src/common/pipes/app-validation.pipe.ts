@@ -24,7 +24,6 @@ const pickConstraintMessage = (error: ValidationError): string[] => {
 }
 
 const collectValidationMessages = (errors: ValidationError[]): string[] => {
-  console.error('Validation errors:', JSON.stringify(errors, null, 2))
   const messages: string[] = []
 
   const walk = (items: ValidationError[]) => {
