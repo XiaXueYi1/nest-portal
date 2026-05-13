@@ -28,13 +28,13 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     this.authService.applyAuthCookie(res, null)
     return { loggedOut: true }
   }
 
   @Get('status')
-  async status(@Req() req: AuthenticatedRequest) {
+  status(@Req() req: AuthenticatedRequest) {
     return { authenticated: true, username: req.user?.sub }
   }
 }

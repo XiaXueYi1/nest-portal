@@ -9,7 +9,7 @@ import { AuthService } from '@/modules/auth/auth.service'
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly authService: AuthService,
   ) {
     super({
@@ -26,7 +26,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt-access'
     })
   }
 
-  async validate(payload: AuthTokenPayload): Promise<AuthTokenPayload> {
+  validate(payload: AuthTokenPayload): AuthTokenPayload {
     return this.authService.validateSession(payload)
   }
 }

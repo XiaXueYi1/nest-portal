@@ -10,9 +10,6 @@ import { UserVo } from '@/modules/user/vo/user.vo'
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * @description 创建用户
-   */
   async create(dto: CreateUserDto): Promise<UserVo> {
     try {
       const user = await this.prisma.user.create({
@@ -21,6 +18,7 @@ export class UserService {
           password: hashPassword(dto.password),
           displayName: dto.displayName,
           email: dto.email,
+          phone: dto.phone,
           avatar: dto.avatar,
           status: dto.status,
         },
@@ -32,9 +30,6 @@ export class UserService {
     }
   }
 
-  /**
-   * @description 查询用户列表（未删除）
-   */
   async findAll(): Promise<UserVo[]> {
     const users = await this.prisma.user.findMany({
       where: { deletedAt: null },
@@ -44,9 +39,6 @@ export class UserService {
     return users.map((user) => this.toUserVo(user))
   }
 
-  /**
-   * @description 查询单个用户（未删除）
-   */
   async findOne(id: string): Promise<UserVo> {
     const user = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
@@ -59,9 +51,6 @@ export class UserService {
     return this.toUserVo(user)
   }
 
-  /**
-   * @description 更新用户
-   */
   async update(id: string, dto: UpdateUserDto): Promise<UserVo> {
     await this.findOneOrThrow(id)
 
@@ -73,6 +62,7 @@ export class UserService {
           password: dto.password ? hashPassword(dto.password) : undefined,
           displayName: dto.displayName,
           email: dto.email,
+          phone: dto.phone,
           avatar: dto.avatar,
           status: dto.status,
         },
@@ -84,9 +74,6 @@ export class UserService {
     }
   }
 
-  /**
-   * @description 软删除用户
-   */
   async remove(id: string): Promise<void> {
     await this.findOneOrThrow(id)
 
@@ -98,9 +85,6 @@ export class UserService {
     })
   }
 
-  /**
-   * @description 查询单个用户实体，不存在则抛错
-   */
   private async findOneOrThrow(id: string) {
     const user = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
@@ -113,15 +97,13 @@ export class UserService {
     return user
   }
 
-  /**
-   * @description 将用户实体映射为对外返回对象（默认不返回密码）
-   */
   private toUserVo(user: {
     id: string
     username: string
     password: string
     displayName: string | null
     email: string | null
+    phone: string | null
     avatar: string | null
     status: UserVo['status']
     lastLoginAt: Date | null
@@ -134,6 +116,7 @@ export class UserService {
       username: user.username,
       displayName: user.displayName,
       email: user.email,
+      phone: user.phone,
       avatar: user.avatar,
       status: user.status,
       lastLoginAt: user.lastLoginAt,
@@ -143,12 +126,9 @@ export class UserService {
     }
   }
 
-  /**
-   * @description Prisma 异常转换
-   */
   private handlePrismaError(error: unknown): never {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new ConflictException('用户名或邮箱已存在')
+      throw new ConflictException('用户名、邮箱或手机号已存在')
     }
     throw error
   }

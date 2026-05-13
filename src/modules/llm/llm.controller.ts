@@ -74,7 +74,7 @@ export class LlmController {
         res.write('data: [DONE]\n\n')
         res.end()
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.logger.error('Failed to stream LLM response', {
           context: 'LlmController',
           err,

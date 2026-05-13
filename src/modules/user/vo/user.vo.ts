@@ -5,6 +5,7 @@ export interface UserVo {
   username: string
   displayName: string | null
   email: string | null
+  phone: string | null
   avatar: string | null
   status: UserStatus
   lastLoginAt: Date | null
