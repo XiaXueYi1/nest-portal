@@ -47,8 +47,6 @@ export interface AuthTokenPayload {
   aud?: string
   /** JWT ID，用于唯一标识当前 token */
   jti: string
-  /** 会话 ID，用于 Redis 会话校验 */
-  sid: string
   /** token 类型：access 或 refresh */
   tokenType: TokenType
   /** 签发时间（秒级时间戳，可选） */

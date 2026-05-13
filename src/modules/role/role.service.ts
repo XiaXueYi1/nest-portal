@@ -36,10 +36,7 @@ export class RoleService {
 
     const where = keyword
       ? {
-          OR: [
-            { name: { contains: keyword, mode: 'insensitive' } },
-            { code: { contains: keyword, mode: 'insensitive' } },
-          ],
+          OR: [{ name: { contains: keyword, mode: Prisma.QueryMode.insensitive } }, { code: { contains: keyword, mode: Prisma.QueryMode.insensitive } }],
         }
       : undefined
 
@@ -111,10 +108,7 @@ export class RoleService {
       throw new BadRequestException('角色已被用户绑定，无法删除')
     }
 
-    await this.prisma.$transaction([
-      this.prisma.rolePermission.deleteMany({ where: { roleId: id } }),
-      this.prisma.role.delete({ where: { id } }),
-    ])
+    await this.prisma.$transaction([this.prisma.rolePermission.deleteMany({ where: { roleId: id } }), this.prisma.role.delete({ where: { id } })])
   }
 
   async getRolePermissions(roleId: string): Promise<PermissionVo[]> {

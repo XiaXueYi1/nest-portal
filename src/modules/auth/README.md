@@ -8,7 +8,7 @@
 
 - 技术栈：`@nestjs/jwt` + `@nestjs/passport` + `passport-jwt`
 - 凭证形态：access + refresh 双 token（HttpOnly Cookie）
-- 会话存储：Redis（按 `sid` 存储，支持多会话）
+- 会话管理：Stateless JWT（无服务端会话存储）
 - 鉴权方式：全局 `AccessTokenGuard`，公开接口使用 `@Public()`
 
 ## 接口
@@ -19,14 +19,14 @@
   - 返回：`accessExpiresIn`、`refreshExpiresIn`
 - `POST /auth/refresh`
   - 使用 refresh token 续签
-  - 替换当前 `sid` 会话并重发双 token
+  - 重发双 token
 - `GET /auth/status`
   - 前端判断是否已登录
   - 当 access token 剩余时间小于阈值（默认 300 秒）时自动续签
 - `POST /auth/logout`
-  - 退出当前会话（按当前 `sid`）
+  - 清除客户端 Cookie（已签发的 JWT 在过期前仍有效）
 - `POST /auth/logout-all`
-  - 一键下线该账号全部会话
+  - 清除客户端 Cookie（stateless 限制：无法撤销已签发的 JWT）
 
 ## 安全策略
 

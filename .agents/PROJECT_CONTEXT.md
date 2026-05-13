@@ -4,7 +4,6 @@ NestJS
 TypeScript
 Prisma
 PostgreSQL
-Redis
 
 Architecture:
 
@@ -20,6 +19,6 @@ relationMode = "prisma"
 
 Auth:
 
-JWT + Redis session
+Stateless JWT（Cookie 双 token）
 
 RBAC enabled.

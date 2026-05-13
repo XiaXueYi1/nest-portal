@@ -5,7 +5,6 @@ import { JwtService } from '@nestjs/jwt'
 import { CookieOptions, Response } from 'express'
 import { PrismaService } from '@/common/prisma/prisma.service'
 import { verifyPassword } from '@/common/utils/password.util'
-import { AuthSessionService } from '@/modules/auth/auth-session.service'
 import { AuthSettings, AuthTokenPayload, TokenPair, TokenType } from '@/modules/auth/types/auth.types'
 
 @Injectable()
@@ -13,7 +12,6 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    private readonly authSessionService: AuthSessionService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -39,21 +37,15 @@ export class AuthService {
   }
 
   /**
-   * @description 签发 access/refresh 双 token，并写入 Redis 会话
+   * @description 签发 access/refresh 双 token（stateless JWT，无服务端会话）
    */
   async issueTokens(username: string): Promise<TokenPair> {
     const settings = this.getAuthSettings()
-    const sid = randomUUID()
-    const now = Date.now()
     const accessExpiresInMs = settings.accessTokenTtlSeconds * 1000
     const refreshExpiresInMs = settings.refreshTokenTtlSeconds * 1000
-    const accessExpiresAt = now + accessExpiresInMs
-    const refreshExpiresAt = now + refreshExpiresInMs
 
-    const accessToken = await this.createToken(username, sid, 'access', settings)
-    const refreshToken = await this.createToken(username, sid, 'refresh', settings)
-
-    await this.authSessionService.saveSession(username, sid, accessExpiresAt, refreshExpiresAt, settings.refreshTokenTtlSeconds)
+    const accessToken = await this.createToken(username, 'access', settings)
+    const refreshToken = await this.createToken(username, 'refresh', settings)
 
     return {
       accessToken,
@@ -64,10 +56,9 @@ export class AuthService {
   }
 
   /**
-   * @description 续签双 token，并替换当前 sid 会话
+   * @description 续签双 token（stateless，直接签发新 token）
    */
-  async rotateTokens(username: string, currentSid: string): Promise<TokenPair> {
-    await this.logoutCurrent(username, currentSid)
+  async rotateTokens(username: string): Promise<TokenPair> {
     return this.issueTokens(username)
   }
 
@@ -87,28 +78,10 @@ export class AuthService {
   }
 
   /**
-   * @description 校验 token 的 sid 是否仍在 Redis 会话中
+   * @description 校验 JWT payload（stateless — JWT 签名由 Passport 策略校验，此方法直接返回 payload）
    */
   async validateSession(payload: AuthTokenPayload): Promise<AuthTokenPayload> {
-    const session = await this.authSessionService.getSession(payload.sub, payload.sid)
-    if (!session || session.sid !== payload.sid) {
-      throw new UnauthorizedException('Session is invalid or expired')
-    }
     return payload
-  }
-
-  /**
-   * @description 退出当前会话
-   */
-  async logoutCurrent(username: string, sid: string): Promise<void> {
-    await this.authSessionService.clearSession(username, sid)
-  }
-
-  /**
-   * @description 一键下线账号全部会话
-   */
-  async logoutAll(username: string): Promise<void> {
-    await this.authSessionService.clearAllSessions(username)
   }
 
   /**
@@ -124,12 +97,11 @@ export class AuthService {
   /**
    * @description 根据 token 类型创建 JWT
    */
-  private async createToken(username: string, sid: string, tokenType: TokenType, settings: AuthSettings): Promise<string> {
+  private async createToken(username: string, tokenType: TokenType, settings: AuthSettings): Promise<string> {
     const tokenTtlSeconds = tokenType === 'access' ? settings.accessTokenTtlSeconds : settings.refreshTokenTtlSeconds
 
     const payload: AuthTokenPayload = {
       sub: username,
-      sid,
       jti: randomUUID(),
       tokenType,
     }

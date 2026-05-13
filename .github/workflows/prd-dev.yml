@@ -3,7 +3,7 @@ name: PRD Development Pipeline
 on:
   push:
     paths:
-      - "docs/prd/**"
+      - 'docs/prd/**'
   workflow_dispatch:
 
 jobs:
@@ -54,7 +54,8 @@ jobs:
             - src/common/interceptors/*
             - src/common/logger/*
             - src/common/prisma/*
-            - src/common/redis/*
+
+
             - src/setup/*
             - src/config/*
             - Any other path under src/common/* not listed in "Only modify"

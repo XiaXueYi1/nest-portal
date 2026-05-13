@@ -37,4 +37,3 @@ Rules:
 - `pageSize` max: 100
 - `total` is the total matched records count
 - return shape is unified for all list APIs
-

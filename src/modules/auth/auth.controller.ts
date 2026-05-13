@@ -34,7 +34,7 @@ export class AuthController {
   }
 
   /**
-   * @description 使用 refresh token 续签双 token，并替换当前会话
+   * @description 使用 refresh token 续签双 token
    */
   @Public()
   @Post('refresh')
@@ -42,8 +42,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(@Req() req: AuthenticatedRequest, @Res({ passthrough: true }) res: Response) {
     const username = req.user?.sub || ''
-    const sid = req.user?.sid || ''
-    const tokens = await this.authService.rotateTokens(username, sid)
+    const tokens = await this.authService.rotateTokens(username)
     this.authService.applyAuthCookies(res, tokens)
 
     return {
@@ -54,26 +53,21 @@ export class AuthController {
   }
 
   /**
-   * @description 退出当前会话
+   * @description 退出当前会话（stateless — 仅清除客户端 cookie）
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: AuthenticatedRequest, @Res({ passthrough: true }) res: Response) {
-    const username = req.user?.sub || ''
-    const sid = req.user?.sid || ''
-    await this.authService.logoutCurrent(username, sid)
+  async logout(@Res({ passthrough: true }) res: Response) {
     this.authService.applyAuthCookies(res, null)
     return { loggedOut: true }
   }
 
   /**
-   * @description 一键下线账号全部会话
+   * @description 一键下线（stateless — 仅清除客户端 cookie；已签发的 JWT 在过期前仍有效）
    */
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
-  async logoutAll(@Req() req: AuthenticatedRequest, @Res({ passthrough: true }) res: Response) {
-    const username = req.user?.sub || ''
-    await this.authService.logoutAll(username)
+  async logoutAll(@Res({ passthrough: true }) res: Response) {
     this.authService.applyAuthCookies(res, null)
     return { loggedOutAll: true }
   }
@@ -90,7 +84,7 @@ export class AuthController {
 
     if (req.user && this.authService.shouldRotateAccessToken(req.user)) {
       this.logger.debug('Access token is near expiry, rotating tokens', 'AuthController', { username })
-      const tokens = await this.authService.rotateTokens(username, req.user.sid)
+      const tokens = await this.authService.rotateTokens(username)
       this.authService.applyAuthCookies(res, tokens)
       refreshed = true
       accessExpiresIn = tokens.accessExpiresInMs
