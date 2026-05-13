@@ -10,6 +10,7 @@ import { PrismaModule } from '@/common/prisma/prisma.module'
 import { RedisModule } from '@/common/redis/redis.module'
 import { AuthModule } from '@/modules/auth/auth.module'
 import { LlmModule } from '@/modules/llm/llm.module'
+import { RoleModule } from '@/modules/role/role.module'
 import { UserModule } from '@/modules/user/user.module'
 
 const nodeEnv = (process.env.NODE_ENV || 'development').trim()
@@ -29,5 +30,6 @@ export const appImports = [
   RedisModule,
   AuthModule,
   UserModule,
+  RoleModule,
   LlmModule,
 ]
