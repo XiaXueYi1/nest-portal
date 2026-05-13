@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt'
 import { CookieOptions, Response } from 'express'
 import { PrismaService } from '@/common/prisma/prisma.service'
 import { verifyPassword } from '@/common/utils/password.util'
-import { AuthSettings, AuthTokenPayload, TokenPair, TokenType } from '@/modules/auth/types/auth.types'
+import { AuthSettings, AuthTokenPayload, TokenResult } from '@/modules/auth/types/auth.types'
 
 @Injectable()
 export class AuthService {
@@ -15,20 +15,10 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  /**
-   * @description 校验登录账号密码（基于数据库用户）
-   */
   async validateCredentials(username: string, password: string): Promise<void> {
     const user = await this.prisma.user.findFirst({
-      where: {
-        username,
-        deletedAt: null,
-      },
-      select: {
-        username: true,
-        password: true,
-        status: true,
-      },
+      where: { username, deletedAt: null },
+      select: { username: true, password: true, status: true },
     })
 
     if (!user || user.status !== 'ACTIVE' || !verifyPassword(password, user.password)) {
@@ -36,91 +26,45 @@ export class AuthService {
     }
   }
 
-  /**
-   * @description 签发 access/refresh 双 token（stateless JWT，无服务端会话）
-   */
-  async issueTokens(username: string): Promise<TokenPair> {
+  async issueToken(username: string): Promise<TokenResult> {
     const settings = this.getAuthSettings()
-    const accessExpiresInMs = settings.accessTokenTtlSeconds * 1000
-    const refreshExpiresInMs = settings.refreshTokenTtlSeconds * 1000
-
-    const accessToken = await this.createToken(username, 'access', settings)
-    const refreshToken = await this.createToken(username, 'refresh', settings)
-
-    return {
-      accessToken,
-      refreshToken,
-      accessExpiresInMs,
-      refreshExpiresInMs,
-    }
-  }
-
-  /**
-   * @description 续签双 token（stateless，直接签发新 token）
-   */
-  async rotateTokens(username: string): Promise<TokenPair> {
-    return this.issueTokens(username)
-  }
-
-  /**
-   * @description 写入或清理认证 cookie
-   */
-  applyAuthCookies(res: Response, tokens: TokenPair | null): void {
-    const settings = this.getAuthSettings()
-    if (tokens) {
-      res.cookie(settings.accessCookieName, tokens.accessToken, this.getCookieOptions('access', settings))
-      res.cookie(settings.refreshCookieName, tokens.refreshToken, this.getCookieOptions('refresh', settings))
-    } else {
-      res.clearCookie(settings.accessCookieName, this.getClearCookieOptions('access', settings))
-      res.clearCookie(settings.refreshCookieName, this.getClearCookieOptions('refresh', settings))
-    }
-    res.setHeader('Cache-Control', 'no-store')
-  }
-
-  /**
-   * @description 校验 JWT payload（stateless — JWT 签名由 Passport 策略校验，此方法直接返回 payload）
-   */
-  async validateSession(payload: AuthTokenPayload): Promise<AuthTokenPayload> {
-    return payload
-  }
-
-  /**
-   * @description 判断 access token 是否接近过期
-   */
-  shouldRotateAccessToken(payload: AuthTokenPayload): boolean {
-    if (!payload.exp) return true
-    const settings = this.getAuthSettings()
-    const nowSeconds = Math.floor(Date.now() / 1000)
-    return payload.exp - nowSeconds <= settings.accessRotateThresholdSeconds
-  }
-
-  /**
-   * @description 根据 token 类型创建 JWT
-   */
-  private async createToken(username: string, tokenType: TokenType, settings: AuthSettings): Promise<string> {
-    const tokenTtlSeconds = tokenType === 'access' ? settings.accessTokenTtlSeconds : settings.refreshTokenTtlSeconds
+    const expiresInMs = settings.tokenTtlSeconds * 1000
 
     const payload: AuthTokenPayload = {
       sub: username,
       jti: randomUUID(),
-      tokenType,
     }
 
-    const secret = tokenType === 'access' ? settings.accessTokenSecret : settings.refreshTokenSecret
-
-    return this.jwtService.signAsync(payload, {
-      secret,
+    const token = await this.jwtService.signAsync(payload, {
+      secret: settings.tokenSecret,
       algorithm: 'HS256',
       issuer: settings.issuer,
       audience: settings.audience,
-      expiresIn: tokenTtlSeconds,
+      expiresIn: settings.tokenTtlSeconds,
       notBefore: 0,
     })
+
+    return { token, expiresInMs }
   }
 
-  /**
-   * @description 读取并聚合认证配置
-   */
+  applyAuthCookie(res: Response, token: string | null): void {
+    const settings = this.getAuthSettings()
+    if (token) {
+      res.cookie(settings.cookieName, token, this.getCookieOptions(settings))
+    } else {
+      res.clearCookie(settings.cookieName, {
+        ...this.getCookieOptions(settings),
+        maxAge: 0,
+        expires: new Date(0),
+      })
+    }
+    res.setHeader('Cache-Control', 'no-store')
+  }
+
+  validateSession(payload: AuthTokenPayload): AuthTokenPayload {
+    return payload
+  }
+
   private getAuthSettings(): AuthSettings {
     const nodeEnv = this.configService.get<string>('app.nodeEnv') || 'development'
     const cookieDomain = this.configService.get<string>('auth.cookieDomain')
@@ -128,30 +72,21 @@ export class AuthService {
     return {
       issuer: this.configService.get<string>('auth.issuer') || 'nest-portal',
       audience: this.configService.get<string>('auth.audience') || 'nest-portal-web',
-      accessTokenSecret: this.configService.get<string>('auth.accessTokenSecret') || '',
-      refreshTokenSecret: this.configService.get<string>('auth.refreshTokenSecret') || '',
-      accessTokenTtlSeconds: this.configService.get<number>('auth.accessTokenTtlSeconds') || 1800,
-      refreshTokenTtlSeconds: this.configService.get<number>('auth.refreshTokenTtlSeconds') || 604800,
-      accessCookieName: this.configService.get<string>('auth.accessCookieName') || 'portal_access_token',
-      refreshCookieName: this.configService.get<string>('auth.refreshCookieName') || 'portal_refresh_token',
+      tokenSecret: this.configService.get<string>('auth.tokenSecret') || '',
+      tokenTtlSeconds: this.configService.get<number>('auth.tokenTtlSeconds') || 1800,
+      cookieName: this.configService.get<string>('auth.cookieName') || 'portal_token',
       cookieDomain: cookieDomain || undefined,
       secure: nodeEnv === 'production',
-      accessRotateThresholdSeconds: this.configService.get<number>('auth.accessRotateThresholdSeconds') || 300,
     }
   }
 
-  /**
-   * @description 生成 cookie 参数
-   */
-  private getCookieOptions(tokenType: TokenType, settings: AuthSettings): CookieOptions {
-    const maxAgeSeconds = tokenType === 'access' ? settings.accessTokenTtlSeconds : settings.refreshTokenTtlSeconds
-
+  private getCookieOptions(settings: AuthSettings): CookieOptions {
     const options: CookieOptions = {
       httpOnly: true,
       secure: settings.secure,
-      sameSite: tokenType === 'access' ? 'lax' : 'strict',
+      sameSite: 'lax',
       path: '/',
-      maxAge: maxAgeSeconds * 1000,
+      maxAge: settings.tokenTtlSeconds * 1000,
     }
 
     if (settings.cookieDomain) {
@@ -159,16 +94,5 @@ export class AuthService {
     }
 
     return options
-  }
-
-  /**
-   * @description 生成清理 cookie 参数
-   */
-  private getClearCookieOptions(tokenType: TokenType, settings: AuthSettings): CookieOptions {
-    return {
-      ...this.getCookieOptions(tokenType, settings),
-      maxAge: 0,
-      expires: new Date(0),
-    }
   }
 }
