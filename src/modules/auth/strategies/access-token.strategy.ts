@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { parseCookies } from '@/modules/auth/auth-token.util'
+import { parseCookies } from '@/common/utils/cookie.util'
 import type { AuthTokenPayload } from '@/modules/auth/types/auth.types'
 import { AuthService } from '@/modules/auth/auth.service'
 

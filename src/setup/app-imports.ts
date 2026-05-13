@@ -15,7 +15,7 @@ const nodeEnv = (process.env.NODE_ENV || 'development').trim()
 const envSuffix = nodeEnv === 'development' ? 'dev' : nodeEnv
 
 /**
- * @description AppModule imports 娓呭崟锛岄泦涓鐞嗘ā鍧楄閰? */
+ * @description AppModule imports  */
 export const appImports = [
   ConfigModule.forRoot({
     isGlobal: true,
