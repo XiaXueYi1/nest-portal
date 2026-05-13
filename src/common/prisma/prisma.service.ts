@@ -10,8 +10,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       throw new Error('DATABASE_URL is required for Prisma')
     }
 
-    const adapter = new PrismaPg({ connectionString })
+    const schema = PrismaService.getSchemaFromConnectionString(connectionString)
+    const adapter = schema ? new PrismaPg({ connectionString }, { schema }) : new PrismaPg({ connectionString })
     super({ adapter })
+  }
+
+  private static getSchemaFromConnectionString(connectionString: string): string | null {
+    try {
+      const schema = new URL(connectionString).searchParams.get('schema')?.trim()
+      return schema || null
+    } catch {
+      return null
+    }
   }
 
   /**

@@ -1,4 +1,5 @@
 ﻿import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
+import { Public } from '@/common/decorators/public.decorator'
 import { CreateUserDto } from '@/modules/user/dto/create-user.dto'
 import { UpdateUserDto } from '@/modules/user/dto/update-user.dto'
 import { UserService } from '@/modules/user/user.service'
@@ -10,6 +11,7 @@ export class UserController {
   /**
    * @description 创建用户
    */
+  @Public()
   @Post('create')
   async create(@Body() dto: CreateUserDto) {
     return this.userService.create(dto)
