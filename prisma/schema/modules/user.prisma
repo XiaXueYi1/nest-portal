@@ -17,9 +17,8 @@ model User {
   updatedAt   DateTime   @updatedAt
   deletedAt   DateTime?
 
-  userRoles    UserRole[]
-  authSessions AuthSession[]
-  auditLogs    AuditLog[]
+  userRoles  UserRole[]
+  auditLogs  AuditLog[]
 
   @@map("users")
   @@index([status])
