@@ -12,6 +12,8 @@ model User {
   updatedAt   DateTime   @updatedAt
   deletedAt   DateTime?
 
+  conversations Conversation[]
+
   @@map("users")
   @@index([status])
   @@index([deletedAt])

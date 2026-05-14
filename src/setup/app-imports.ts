@@ -7,6 +7,7 @@ import { validationSchema } from '@/config/validation.schema'
 import { LoggerModule } from '@/common/logger/logger.module'
 import { PrismaModule } from '@/common/prisma/prisma.module'
 import { AuthModule } from '@/modules/auth/auth.module'
+import { ChatModule } from '@/modules/chat/chat.module'
 import { LlmModule } from '@/modules/llm/llm.module'
 import { UserModule } from '@/modules/user/user.module'
 
@@ -23,6 +24,7 @@ export const appImports = [
   LoggerModule,
   PrismaModule,
   AuthModule,
+  ChatModule,
   UserModule,
   LlmModule,
 ]

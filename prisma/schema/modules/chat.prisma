@@ -1,0 +1,54 @@
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String
+  title     String    @db.VarChar(255)
+  model     String    @db.VarChar(50)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  messages Message[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("conversations")
+  @@index([userId])
+  @@index([updatedAt(sort: Desc)])
+}
+
+model Message {
+  id               String           @id @default(uuid())
+  conversationId   String
+  parentId         String?
+  role             MessageRole
+  content          String           @default("") @db.Text
+  status           MessageStatus    @default(done)
+  seq              Int
+  model            String?          @db.VarChar(50)
+  promptTokens     Int              @default(0) @map("prompt_tokens")
+  completionTokens Int              @default(0) @map("completion_tokens")
+  totalTokens      Int              @default(0) @map("total_tokens")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  parent       Message?     @relation("MessageTree", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  children     Message[]    @relation("MessageTree")
+
+  @@map("messages")
+  @@index([conversationId, seq])
+  @@index([parentId])
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+  tool
+}
+
+enum MessageStatus {
+  generating
+  done
+  error
+  stopped
+}

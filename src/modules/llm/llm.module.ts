@@ -6,5 +6,6 @@ import { DeepSeekProvider } from '@/modules/llm/providers/deepseek.provider'
 @Module({
   controllers: [LlmController],
   providers: [LlmService, DeepSeekProvider],
+  exports: [LlmService],
 })
 export class LlmModule {}
