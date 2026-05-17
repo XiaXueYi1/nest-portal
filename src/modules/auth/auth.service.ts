@@ -79,7 +79,7 @@ export class AuthService {
   private getCookieOptions(settings: AuthSettings): CookieOptions {
     const options: CookieOptions = {
       httpOnly: true,
-      secure: settings.secure,
+      secure: false,
       sameSite: 'lax',
       path: '/',
       maxAge: settings.tokenTtlSeconds * 1000,
