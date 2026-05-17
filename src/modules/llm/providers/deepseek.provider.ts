@@ -2,15 +2,13 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Observable } from 'rxjs'
 import OpenAI from 'openai'
-import { LlmProvider, LlmResponse } from '@/modules/llm/interfaces/llm-provider.interface'
+import { LlmMessage, LlmProvider, LlmRequestOptions, LlmResponse } from '@/modules/llm/interfaces/llm-provider.interface'
 
 @Injectable()
 export class DeepSeekProvider implements LlmProvider {
   private readonly client: OpenAI
+  private readonly defaultModel = 'deepseek-chat'
 
-  /**
-   * @description 初始化 DeepSeek 客户端
-   */
   constructor(private readonly configService: ConfigService) {
     const baseURL = this.configService.get<string>('llm.deepseek.apiUrl')
     const apiKey = this.configService.get<string>('llm.deepseek.apiKey')
@@ -25,15 +23,17 @@ export class DeepSeekProvider implements LlmProvider {
     })
   }
 
-  /**
-   * @description 获取完整响应
-   */
-  async generateResponse(content: string): Promise<LlmResponse> {
+  async generateResponse(messages: LlmMessage[], options?: LlmRequestOptions): Promise<LlmResponse> {
     try {
-      const completion = await this.client.chat.completions.create({
-        model: 'deepseek-chat',
-        messages: [{ role: 'user', content }],
-      })
+      const completion = await this.client.chat.completions.create(
+        {
+          model: options?.model || this.defaultModel,
+          messages,
+        },
+        {
+          signal: options?.abortSignal,
+        },
+      )
 
       const choice = completion.choices[0]
       if (!choice || !choice.message.content) {
@@ -55,18 +55,20 @@ export class DeepSeekProvider implements LlmProvider {
     }
   }
 
-  /**
-   * @description 获取流式响应
-   */
-  generateStream(content: string): Observable<OpenAI.Chat.Completions.ChatCompletionChunk> {
+  generateStream(messages: LlmMessage[], options?: LlmRequestOptions): Observable<OpenAI.Chat.Completions.ChatCompletionChunk> {
     return new Observable((subscriber) => {
       void (async () => {
         try {
-          const stream = await this.client.chat.completions.create({
-            model: 'deepseek-chat',
-            messages: [{ role: 'user', content }],
-            stream: true,
-          })
+          const stream = await this.client.chat.completions.create(
+            {
+              model: options?.model || this.defaultModel,
+              messages,
+              stream: true,
+            },
+            {
+              signal: options?.abortSignal,
+            },
+          )
 
           for await (const chunk of stream) {
             subscriber.next(chunk)

@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer'
-import { IsInt, IsOptional, Max, Min } from 'class-validator'
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator'
 
 export class ConversationQueryDto {
   @IsOptional()
@@ -14,4 +14,9 @@ export class ConversationQueryDto {
   @Min(1, { message: 'pageSize 最小为 1' })
   @Max(50, { message: 'pageSize 最大为 50' })
   pageSize?: number
+
+  @IsOptional()
+  @IsString({ message: 'agentKey 必须是字符串' })
+  @MaxLength(100, { message: 'agentKey 长度不能超过 100' })
+  agentKey?: string
 }

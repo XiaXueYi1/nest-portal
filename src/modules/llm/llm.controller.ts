@@ -1,9 +1,10 @@
 import { Body, Controller, HttpStatus, Inject, Post, Res } from '@nestjs/common'
 import type { LoggerService } from '@nestjs/common'
 import type { Response } from 'express'
-import { LlmService } from '@/modules/llm/llm.service'
-import { ChatDto, MessageDto } from '@/modules/llm/dto/chat.dto'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
+import { ChatDto, MessageDto } from '@/modules/llm/dto/chat.dto'
+import { LlmService } from '@/modules/llm/llm.service'
+import { LlmMessage, LlmMessageRole } from '@/modules/llm/interfaces/llm-provider.interface'
 
 @Controller('llm')
 export class LlmController {
@@ -13,46 +14,43 @@ export class LlmController {
     private readonly logger: LoggerService,
   ) {}
 
-  /**
-   * @description 统一提取消息中的文本内容
-   */
   private getMessageText(message: MessageDto): string {
     if (typeof message.content === 'string') return message.content
     if (Array.isArray(message.parts)) {
       return message.parts
-        .filter((p) => p.type === 'text')
-        .map((p) => p.text ?? '')
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text ?? '')
         .join('')
     }
     return ''
   }
 
-  /**
-   * @description 将前端消息数组组装为模型提示词
-   */
-  private buildPrompt(messages: MessageDto[]): string {
-    return messages
-      .map((message) => {
-        const text = this.getMessageText(message).trim()
-        if (!text) return ''
-        return `${message.role}: ${text}`
-      })
-      .filter(Boolean)
-      .join('\n')
+  private isSupportedRole(role: string): role is LlmMessageRole {
+    return role === 'system' || role === 'user' || role === 'assistant'
   }
 
-  /**
-   * @description 处理聊天请求，支持普通模式与流式模式
-   */
+  private buildMessages(messages: MessageDto[]): LlmMessage[] {
+    return messages
+      .map((message) => {
+        const content = this.getMessageText(message).trim()
+        if (!content || !this.isSupportedRole(message.role)) return null
+        return {
+          role: message.role,
+          content,
+        } satisfies LlmMessage
+      })
+      .filter((message): message is LlmMessage => message !== null)
+  }
+
   @Post('chat')
   async chat(@Body() chatDto: ChatDto, @Res() res: Response) {
-    const prompt = this.buildPrompt(chatDto.messages || [])
-    if (!prompt) {
+    const messages = this.buildMessages(chatDto.messages || [])
+    if (messages.length === 0) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No valid text content found in messages.' })
     }
 
     if (!chatDto.stream) {
-      const result = await this.llmService.generateResponse(prompt)
+      const result = await this.llmService.generateResponse(messages, { model: chatDto.model })
       return res.status(HttpStatus.OK).json({
         content: result.content,
         usage: result.usage,
@@ -66,7 +64,7 @@ export class LlmController {
     res.status(HttpStatus.OK)
     res.flushHeaders?.()
 
-    this.llmService.generateStream(prompt).subscribe({
+    this.llmService.generateStream(messages, { model: chatDto.model }).subscribe({
       next: (chunk) => {
         res.write(`data: ${JSON.stringify(chunk)}\n\n`)
       },

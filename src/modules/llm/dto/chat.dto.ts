@@ -1,53 +1,61 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsOptional } from 'class-validator'
 import { Type } from 'class-transformer'
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator'
 
 export class MessagePartDto {
-  /** 消息片段类型，例如 text */
+  @IsString()
   type: string
 
-  /** 文本内容 */
+  @IsOptional()
+  @IsString()
   text?: string
 }
 
 export class MessageDto {
-  /** 角色：user / assistant / system */
+  @IsString()
   role: string
 
-  /** 分段消息内容 */
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MessagePartDto)
   parts?: MessagePartDto[]
 
-  /** 纯文本消息内容 */
+  @IsOptional()
+  @IsString()
   content?: string
 
-  /** 消息唯一标识 */
+  @IsOptional()
+  @IsString()
   id?: string
 }
 
 export class ChatDto {
-  /** 对话消息列表 */
   @IsArray()
   @IsNotEmpty()
+  @ValidateNested({ each: true })
   @Type(() => MessageDto)
   messages: MessageDto[]
 
-  /** 是否启用流式输出 */
   @IsOptional()
   @IsBoolean()
   stream?: boolean
 
-  /** 会话唯一标识 */
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  model?: string
+
+  @IsOptional()
+  @IsString()
   id?: string
 
-  /** 工具调用上下文 */
   @IsOptional()
   tools?: Record<string, unknown>
 
-  /** 触发来源 */
   @IsOptional()
+  @IsString()
   trigger?: string
 
-  /** 附加元数据 */
   @IsOptional()
-  metadata: Record<string, unknown>
+  metadata?: Record<string, unknown>
 }

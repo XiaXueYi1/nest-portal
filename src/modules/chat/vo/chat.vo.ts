@@ -1,5 +1,6 @@
 export interface ConversationVo {
   id: string
+  agentKey: string
   title: string
   model: string
   messageCount: number

@@ -1,11 +1,20 @@
 import { Observable } from 'rxjs'
 import type OpenAI from 'openai'
 
-export interface LlmResponse {
-  /** 生成的文本内容 */
-  content: string
+export type LlmMessageRole = 'system' | 'user' | 'assistant'
 
-  /** token 使用统计 */
+export interface LlmMessage {
+  role: LlmMessageRole
+  content: string
+}
+
+export interface LlmRequestOptions {
+  model?: string
+  abortSignal?: AbortSignal
+}
+
+export interface LlmResponse {
+  content: string
   usage?: {
     prompt_tokens: number
     completion_tokens: number
@@ -14,9 +23,6 @@ export interface LlmResponse {
 }
 
 export interface LlmProvider {
-  /** 同步生成完整响应 */
-  generateResponse(content: string): Promise<LlmResponse>
-
-  /** 以流式方式生成响应 */
-  generateStream(content: string): Observable<OpenAI.Chat.Completions.ChatCompletionChunk>
+  generateResponse(messages: LlmMessage[], options?: LlmRequestOptions): Promise<LlmResponse>
+  generateStream(messages: LlmMessage[], options?: LlmRequestOptions): Observable<OpenAI.Chat.Completions.ChatCompletionChunk>
 }

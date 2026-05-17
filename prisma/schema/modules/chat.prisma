@@ -1,6 +1,7 @@
 model Conversation {
   id        String    @id @default(uuid())
   userId    String
+  agentKey  String    @default("default") @map("agent_key") @db.VarChar(100)
   title     String    @db.VarChar(255)
   model     String    @db.VarChar(50)
   createdAt DateTime  @default(now()) @map("created_at")
@@ -12,6 +13,7 @@ model Conversation {
 
   @@map("conversations")
   @@index([userId])
+  @@index([userId, agentKey, updatedAt(sort: Desc)])
   @@index([updatedAt(sort: Desc)])
 }
 
