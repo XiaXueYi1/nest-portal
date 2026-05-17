@@ -2,7 +2,6 @@
 import { defineConfig } from 'prisma/config'
 
 dotenv.config({ path: process.env.ENV_FILE || '.env.development' })
-console.log('test')
 export default defineConfig({
   schema: 'prisma/schema',
   migrations: {
