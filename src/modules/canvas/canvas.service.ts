@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { DateRangeQueryDto } from '@/common/dto/date-range-query.dto'
+import { PaginationQueryDto } from '@/common/dto/pagination-query.dto'
 import { PrismaService } from '@/common/prisma/prisma.service'
+import { PaginationResponse } from '@/common/types/pagination-response.type'
 import { buildDailyCounts, resolveStatsDateRange } from '@/common/utils/stats-date-range.util'
 import { SaveCanvasDto } from './dto/save-canvas.dto'
 import { NodeTemplateVo } from './vo/node-template.vo'
@@ -26,20 +28,35 @@ export class CanvasService {
 
   // ── Canvas CRUD ────────────────────────────────────
 
-  async findAll(userId: string): Promise<CanvasVo[]> {
-    const canvases = await this.prisma.canvas.findMany({
-      where: { ownerId: userId, isDeleted: false },
-      select: {
-        id: true,
-        name: true,
-        framework: true,
-        thumbnail: true,
-        updatedAt: true,
-        _count: { select: { nodes: { where: { isDeleted: false } } } },
-      },
-      orderBy: { updatedAt: 'desc' },
-    })
-    return canvases.map((c) => this.toCanvasVo(c))
+  async findAll(userId: string, query: PaginationQueryDto): Promise<PaginationResponse<CanvasVo>> {
+    const page = query.page ?? 1
+    const pageSize = query.pageSize ?? 10
+    const where: Prisma.CanvasWhereInput = { ownerId: userId, isDeleted: false }
+
+    const [canvases, total] = await this.prisma.$transaction([
+      this.prisma.canvas.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          framework: true,
+          thumbnail: true,
+          updatedAt: true,
+          _count: { select: { nodes: { where: { isDeleted: false } } } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.canvas.count({ where }),
+    ])
+
+    return {
+      list: canvases.map((c) => this.toCanvasVo(c)),
+      total,
+      page,
+      pageSize,
+    }
   }
 
   async findOne(id: string, userId: string): Promise<CanvasDetailVo> {

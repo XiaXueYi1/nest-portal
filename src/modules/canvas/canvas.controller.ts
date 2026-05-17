@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Put, Query, Req } from '@nestjs/common'
 import { DateRangeQueryDto } from '@/common/dto/date-range-query.dto'
+import { PaginationQueryDto } from '@/common/dto/pagination-query.dto'
 import type { AuthenticatedRequest } from '@/modules/auth/types/auth.types'
 import { CanvasService } from './canvas.service'
 import { SaveCanvasDto } from './dto/save-canvas.dto'
@@ -14,8 +15,8 @@ export class CanvasController {
   }
 
   @Get()
-  async findAll(@Req() req: AuthenticatedRequest) {
-    return this.canvasService.findAll(req.user!.sub)
+  async findAll(@Query() query: PaginationQueryDto, @Req() req: AuthenticatedRequest) {
+    return this.canvasService.findAll(req.user!.sub, query)
   }
 
   @Get('statistics')
