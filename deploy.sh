@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP_NAME="${APP_NAME:-nest-portal}"
 APP_DIR="${APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+export CI="${CI:-true}"
 
 cd "$APP_DIR"
 
