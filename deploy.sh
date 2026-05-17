@@ -35,7 +35,11 @@ if [ -z "$PM2_BIN" ] && command -v npm >/dev/null 2>&1; then
 fi
 
 if [ -n "$PM2_BIN" ]; then
-  "$PM2_BIN" restart "$APP_NAME" || "$PM2_BIN" start "pnpm run start:prod" --name "$APP_NAME"
+  if "$PM2_BIN" describe "$APP_NAME" >/dev/null 2>&1; then
+    "$PM2_BIN" restart "$APP_NAME" --update-env
+  else
+    "$PM2_BIN" start "pnpm run start:prod" --name "$APP_NAME"
+  fi
   "$PM2_BIN" save
 else
   echo "pm2 is not installed. Install it first: npm install -g pm2"
