@@ -15,4 +15,5 @@ export const validationSchema = Joi.object({
   AUTH_TOKEN_TTL_SECONDS: Joi.number().integer().min(300).default(1800),
   AUTH_COOKIE_NAME: Joi.string().default('portal_token'),
   AUTH_COOKIE_DOMAIN: Joi.string().allow('').optional(),
+  AUTH_COOKIE_SECURE: Joi.boolean().truthy('true').falsy('false').optional(),
 })
