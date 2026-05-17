@@ -1,0 +1,63 @@
+model Canvas {
+  id          String    @id @default(cuid())
+  name        String
+  description String?   @db.Text
+  framework   String?
+  thumbnail   String?
+  isDeleted   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  nodes CanvasNode[]
+  edges CanvasEdge[]
+
+  @@map("canvases")
+}
+
+model CanvasNode {
+  id         String  @id @default(cuid())
+  canvasId   String
+  templateId String?
+
+  positionX Float @default(0)
+  positionY Float @default(0)
+
+  label       String
+  note        String?  @db.Text
+  category    String
+  description String?
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  canvas   Canvas         @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  template NodeTemplate?  @relation(fields: [templateId], references: [id])
+
+  outEdges CanvasEdge[] @relation("EdgeSource")
+  inEdges  CanvasEdge[] @relation("EdgeTarget")
+
+  @@map("canvas_nodes")
+}
+
+model CanvasEdge {
+  id           String   @id @default(cuid())
+  canvasId     String
+  sourceId     String
+  targetId     String
+  sourcePortId String?
+  targetPortId String?
+  label        String?
+  style        Json?
+  createdAt    DateTime @default(now())
+
+  canvas Canvas     @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  source CanvasNode @relation("EdgeSource", fields: [sourceId], references: [id], onDelete: Cascade)
+  target CanvasNode @relation("EdgeTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@map("canvas_edges")
+}

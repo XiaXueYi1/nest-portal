@@ -9,6 +9,7 @@ import { PrismaModule } from '@/common/prisma/prisma.module'
 import { AuthModule } from '@/modules/auth/auth.module'
 import { ChatModule } from '@/modules/chat/chat.module'
 import { LlmModule } from '@/modules/llm/llm.module'
+import { CanvasModule } from '@/modules/canvas/canvas.module'
 import { UserModule } from '@/modules/user/user.module'
 
 const nodeEnv = (process.env.NODE_ENV || 'development').trim()
@@ -26,5 +27,6 @@ export const appImports = [
   AuthModule,
   ChatModule,
   UserModule,
+  CanvasModule,
   LlmModule,
 ]

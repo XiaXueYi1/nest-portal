@@ -1,0 +1,22 @@
+enum NodeCategory {
+  COMMON
+  VUE
+  REACT
+  PROJECT
+}
+
+model NodeTemplate {
+  id          String       @id @default(cuid())
+  name        String
+  category    NodeCategory
+  description String
+  version     String?
+  sortOrder   Int          @default(0)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  canvasNodes CanvasNode[]
+
+  @@map("node_templates")
+}
