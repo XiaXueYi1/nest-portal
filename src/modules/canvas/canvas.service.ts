@@ -33,6 +33,10 @@ export class CanvasService {
     const pageSize = query.pageSize ?? 10
     const where: Prisma.CanvasWhereInput = { ownerId: userId, isDeleted: false }
 
+    if (query.keyword) {
+      where.name = { contains: query.keyword }
+    }
+
     const [canvases, total] = await this.prisma.$transaction([
       this.prisma.canvas.findMany({
         where,

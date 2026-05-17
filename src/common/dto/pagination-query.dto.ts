@@ -1,7 +1,11 @@
 import { Type } from 'class-transformer'
-import { IsInt, IsOptional, Max, Min } from 'class-validator'
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
 
 export class PaginationQueryDto {
+  @IsOptional()
+  @IsString({ message: 'keyword must be a string' })
+  keyword?: string
+
   @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'page must be an integer' })
