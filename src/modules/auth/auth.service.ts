@@ -66,18 +66,13 @@ export class AuthService {
   }
 
   private getAuthSettings(): AuthSettings {
-    const nodeEnv = this.configService.get<string>('app.nodeEnv') || 'development'
-    const cookieDomain = this.configService.get<string>('auth.cookieDomain')
-    const cookieSecure = this.configService.get<string>('auth.cookieSecure')
-
     return {
       issuer: this.configService.get<string>('auth.issuer') || 'nest-portal',
       audience: this.configService.get<string>('auth.audience') || 'nest-portal-web',
       tokenSecret: this.configService.get<string>('auth.tokenSecret') || '',
       tokenTtlSeconds: this.configService.get<number>('auth.tokenTtlSeconds') || 1800,
       cookieName: this.configService.get<string>('auth.cookieName') || 'portal_token',
-      cookieDomain: cookieDomain || undefined,
-      secure: cookieSecure ? cookieSecure === 'true' : nodeEnv === 'production',
+      secure: false,
     }
   }
 
@@ -88,10 +83,6 @@ export class AuthService {
       sameSite: 'lax',
       path: '/',
       maxAge: settings.tokenTtlSeconds * 1000,
-    }
-
-    if (settings.cookieDomain) {
-      options.domain = settings.cookieDomain
     }
 
     return options

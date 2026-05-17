@@ -6,7 +6,6 @@ export interface AuthSettings {
   tokenSecret: string
   tokenTtlSeconds: number
   cookieName: string
-  cookieDomain?: string
   secure: boolean
 }
 

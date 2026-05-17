@@ -6,6 +6,4 @@ export default registerAs('auth', () => ({
   tokenSecret: process.env.AUTH_TOKEN_SECRET || '',
   tokenTtlSeconds: parseInt(process.env.AUTH_TOKEN_TTL_SECONDS || '1800', 10),
   cookieName: process.env.AUTH_COOKIE_NAME || 'portal_token',
-  cookieDomain: process.env.AUTH_COOKIE_DOMAIN,
-  cookieSecure: process.env.AUTH_COOKIE_SECURE,
 }))
