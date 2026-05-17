@@ -13,12 +13,11 @@ import { CanvasModule } from '@/modules/canvas/canvas.module'
 import { UserModule } from '@/modules/user/user.module'
 
 const nodeEnv = (process.env.NODE_ENV || 'development').trim()
-const envSuffix = nodeEnv === 'development' ? 'dev' : nodeEnv
 
 export const appImports = [
   ConfigModule.forRoot({
     isGlobal: true,
-    envFilePath: [`.env.${envSuffix}`, '.env.dev'],
+    envFilePath: [`.env.${nodeEnv}`, '.env.development'],
     load: [appConfig, llmConfig, authConfig, loggerConfig],
     validationSchema,
   }),

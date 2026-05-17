@@ -1,7 +1,7 @@
 ﻿import dotenv from 'dotenv'
 import { defineConfig } from 'prisma/config'
 
-dotenv.config({ path: process.env.ENV_FILE || '.env.dev' })
+dotenv.config({ path: process.env.ENV_FILE || '.env.development' })
 
 export default defineConfig({
   schema: 'prisma/schema',
