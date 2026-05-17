@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Put, Req } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Put, Query, Req } from '@nestjs/common'
+import { DateRangeQueryDto } from '@/common/dto/date-range-query.dto'
 import type { AuthenticatedRequest } from '@/modules/auth/types/auth.types'
 import { CanvasService } from './canvas.service'
 import { SaveCanvasDto } from './dto/save-canvas.dto'
@@ -15,6 +16,11 @@ export class CanvasController {
   @Get()
   async findAll(@Req() req: AuthenticatedRequest) {
     return this.canvasService.findAll(req.user!.sub)
+  }
+
+  @Get('statistics')
+  async statistics(@Query() query: DateRangeQueryDto) {
+    return this.canvasService.statistics(query)
   }
 
   @Get(':id')

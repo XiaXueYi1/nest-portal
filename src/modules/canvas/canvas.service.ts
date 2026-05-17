@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { DateRangeQueryDto } from '@/common/dto/date-range-query.dto'
 import { PrismaService } from '@/common/prisma/prisma.service'
+import { buildDailyCounts, resolveStatsDateRange } from '@/common/utils/stats-date-range.util'
 import { SaveCanvasDto } from './dto/save-canvas.dto'
 import { NodeTemplateVo } from './vo/node-template.vo'
 import { CanvasVo } from './vo/canvas.vo'
@@ -72,6 +74,31 @@ export class CanvasService {
       where: { id },
       data: { isDeleted: true },
     })
+  }
+
+  async statistics(query: DateRangeQueryDto) {
+    const range = resolveStatsDateRange(query)
+    const canvases = await this.prisma.canvas.findMany({
+      where: {
+        isDeleted: false,
+        createdAt: {
+          gte: range.start,
+          lt: range.endExclusive,
+        },
+      },
+      select: { createdAt: true },
+    })
+    const daily = buildDailyCounts(
+      range,
+      canvases.map((canvas) => canvas.createdAt),
+    )
+
+    return {
+      startDate: range.startDate,
+      endDate: range.endDate,
+      total: canvases.length,
+      daily,
+    }
   }
 
   // ── Private: create / update ───────────────────────

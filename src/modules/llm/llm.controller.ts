@@ -1,7 +1,8 @@
-import { Body, Controller, HttpStatus, Inject, Post, Res } from '@nestjs/common'
+import { Body, Controller, Get, HttpStatus, Inject, Post, Query, Res } from '@nestjs/common'
 import type { LoggerService } from '@nestjs/common'
 import type { Response } from 'express'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
+import { DateRangeQueryDto } from '@/common/dto/date-range-query.dto'
 import { ChatDto, MessageDto } from '@/modules/llm/dto/chat.dto'
 import { LlmService } from '@/modules/llm/llm.service'
 import { LlmMessage, LlmMessageRole } from '@/modules/llm/interfaces/llm-provider.interface'
@@ -40,6 +41,11 @@ export class LlmController {
         } satisfies LlmMessage
       })
       .filter((message): message is LlmMessage => message !== null)
+  }
+
+  @Get('statistics')
+  async statistics(@Query() query: DateRangeQueryDto) {
+    return this.llmService.statistics(query)
   }
 
   @Post('chat')
